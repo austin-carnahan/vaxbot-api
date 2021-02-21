@@ -16,8 +16,8 @@ var LocationSchema = new Schema({
   event_type: String,
   event_url: { type: String, required: true },
   updated: { type: Date, default: Date.now() },
-  published: { type: Boolean, default: false }
-  channels: [{ type: Schema.Types.ObjectId, ref: 'Channel' }]
+  published: { type: Boolean, default: false },
+  channels: [{ type: Schema.Types.ObjectId, ref: 'Channel' }],
 
 });
 

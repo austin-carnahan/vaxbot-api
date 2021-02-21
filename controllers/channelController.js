@@ -27,5 +27,5 @@ exports.channel_update = function(req, res) {
 
 // Subscribe to specific Channel on GET.
 exports.channel_subscribe = function(req, res) {
-    res.send('NOT IMPLEMENTED: Channel subscribe GET' + + req.params.id);
+    res.send('NOT IMPLEMENTED: Channel subscribe POST' + + req.params.id);
 };

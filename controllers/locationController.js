@@ -27,10 +27,10 @@ exports.location_update = function(req, res) {
 
 // Search for locations.
 exports.location_search = function(req, res) {
-    res.send('NOT IMPLEMENTED: Location search GET' + + req.params.query);
+    res.send('NOT IMPLEMENTED: Location search GET: ' + req.query.q);
 };
 
 // Batch update/upload locations.
 exports.location_batch = function(req, res) {
-    res.send('NOT IMPLEMENTED: Batch update locations');
+    res.send('NOT IMPLEMENTED: Batch update locations POST');
 };
