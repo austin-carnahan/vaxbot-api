@@ -1,13 +1,31 @@
 var Location = require('../models/location');
 
 // return list of all Location GET
-exports.location_list = function(req, res) {
-    res.send('NOT IMPLEMENTED: Location list');
+exports.location_list = async function(req, res) {
+	try{
+		const locations = await Location.find();
+		res.json({"locations" : locations});
+		
+	} catch(err) {
+		res.status(500).send(`Oops! Something went wrong: \n ${err}`);
+	}
 };
 
 // return details for a specific Location. GET
-exports.location_detail = function(req, res) {
-    res.send('NOT IMPLEMENTED: Location detail: ' + req.params.id);
+exports.location_detail = async function(req, res) {
+	try {		
+		const location = await Location.findById(req.params.id);
+		
+		if(!location) {
+			res.status(404).json({ "message": `Unable to locate location with id: ${req.params.id}`});
+			
+		} else {
+			res.json(location);
+		}
+		
+	} catch(err) {
+		res.status(500).send(`Oops! Something went wrong: \n ${err}`);
+	}
 };
 
 // Handle Location create on POST.

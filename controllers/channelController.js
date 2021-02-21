@@ -8,11 +8,11 @@ exports.channel_list = async function(req, res) {
 		
 	} catch(err) {
 		//err.message = "No channels found";
-		res.status(500).send("Oops! Something went wrong...");
+		res.status(500).send(`Oops! Something went wrong: \n ${err}`);
 	}
 };
 
-// return details for a specific Channel. GET
+// return details for a specific Channel GET
 exports.channel_detail = async function(req, res) {
 	try {		
 		const channel = await Channel.findById(req.params.id);
