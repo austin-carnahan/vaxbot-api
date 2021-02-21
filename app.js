@@ -5,12 +5,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var locationsRouter = require('./routes/location');
-var channelsRouter = require('./routes/channel');
+var index_router = require('./routes/index');
+var locations_router = require('./routes/location');
+var channels_router = require('./routes/channel');
 
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 const db = mongoose.connection
 db.on('error', (error) => console.error(error))
 db.once('open', () => console.log('connected to database'))
@@ -23,9 +23,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 //~ app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('v1/locations', locationsRouter);
-app.use('v1/channels', channelsRouter); 
+app.use('/', index_router);
+app.use('/v1/locations', locations_router);
+app.use('/v1/channels', channels_router); 
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -40,7 +40,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.json({ 'message' : 'error'});
+  res.json({ 'message' : err.message});
 });
 
 module.exports = app;
