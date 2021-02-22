@@ -5,7 +5,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var ChannelSchema = new Schema({
-  name: { type: String, required: true }
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  state: { type: String, required: true },
+  country: String,
+  posts: { type: Number, default: 0},
 });
 
 //Export function to create "SomeModel" model class

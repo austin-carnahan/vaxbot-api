@@ -34,8 +34,13 @@ exports.location_create = function(req, res) {
 };
 
 // Location delete.
-exports.location_delete = function(req, res) {
-    res.send('NOT IMPLEMENTED: Location delete DELETE' + req.params.id);
+exports.location_delete = async function(req, res) {
+    try {		
+        Location.deleteOne({_id = req.params.id});
+        res.json({"message" : `Location deleted with id: ${req.params.id}`});			
+    } catch(err) {
+		res.status(500).send(`Oops! Something went wrong: \n ${err}`);	
+    }
 };
 
 // Location update on PUT.
