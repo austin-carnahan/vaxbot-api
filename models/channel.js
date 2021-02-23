@@ -11,4 +11,4 @@ var ChannelSchema = new Schema({
 });
 
 //Export function to create "SomeModel" model class
-module.exports = mongoose.model('Channel', ChannelSchema );
+module.exports = mongoose.model('Channel', ChannelSchema, 'Channels');
