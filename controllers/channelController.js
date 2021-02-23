@@ -25,7 +25,7 @@ exports.channel_detail = async function(req, res) {
 };
 
 // Channel create on POST.
-exports.channel_create = async function(req, res) {
+exports.channel_create = async function(req, res) {			//need to work on default values
     try {		
 		const channel = await Channel.findOne(req.body.name);
 		if(channel) {
@@ -49,7 +49,7 @@ exports.channel_create = async function(req, res) {
 // Channel delete
 exports.channel_delete = async function(req, res) {
 	try {		
-		Channel.deleteOne({_id = req.params.id});
+		Channel.deleteOne({_id : req.params.id});
 		res.json({"message" : `Channel deleted with id: ${req.params.id}`});			
 	} catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);	
@@ -57,7 +57,7 @@ exports.channel_delete = async function(req, res) {
 };
 
 // Channel update on PUT.
-exports.channel_update = function(req, res) {
+exports.channel_update = async function(req, res) {
     try {		
 		const channel = await Channel.findById(req.params.id);
 		if(!channel) {
@@ -76,6 +76,6 @@ exports.channel_update = function(req, res) {
 };
 
 // Subscribe to specific Channel on GET.
-exports.channel_subscribe = function(req, res) {
+exports.channel_subscribe = async function(req, res) {
     res.send('NOT IMPLEMENTED: Channel subscribe POST' + + req.params.id);
 };

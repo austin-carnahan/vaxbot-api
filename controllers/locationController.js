@@ -69,7 +69,7 @@ exports.location_create = async function(req, res) {
 // Location delete.
 exports.location_delete = async function(req, res) {
     try {		
-        Location.deleteOne({_id = req.params.id});
+        Location.deleteOne({_id : req.params.id});
         res.json({"message" : `Location deleted with id: ${req.params.id}`});			
     } catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);	
@@ -106,7 +106,7 @@ exports.location_search = async function(req, res) {
         const location = await Location.find(filter);
         
         if(!location) {
-            res.status(404)json({ "message": `Unable to find location with parameters: ${query_obj}`})
+            res.status(404).json({ "message": `Unable to find location with parameters: ${query_obj}`})
         } else {
             res.json(location);
         }
@@ -140,7 +140,7 @@ exports.location_batch = async function(req, res) {
                 events: req.body.events || [],
                 tags: req.body.tags || null,
                 location_url: req.body.location_url || null,
-                signup_url: req.body.signup_url || null,
+                signup_url: req.body.signup_url,
                 phone: req.body.phone || null,
                 email: req.body.email || null,
                 updated: Date.now(),
