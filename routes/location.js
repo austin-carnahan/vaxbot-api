@@ -13,16 +13,16 @@ router.post('/', location_controller.location_create);
 // GET request for searching locations.
 router.get('/search/', location_controller.location_search);
 
-// POST request for searching locations.
+// POST request for batch updating locations.
 router.post('/batch', location_controller.location_batch);
 
 // GET request for getting location details.
 router.get('/:id', location_controller.location_detail);
 
 // DELETE request for removing a location.
-router.get('/:id', location_controller.location_delete);
+router.delete('/:id', location_controller.location_delete);
 
-// PUT request for updating a location.
-router.put('/:id', location_controller.location_update);
+// PATCH request for updating a location.
+router.patch('/:id', location_controller.location_update);
 
 module.exports = router;

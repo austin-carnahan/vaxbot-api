@@ -31,36 +31,36 @@ exports.location_detail = async function(req, res) {
 // Handle Location create on POST.
 exports.location_create = async function(req, res) {
     try {		
-		const location = await Location.findOne(req.body.name);
-		if(location) {
-			res.status(409).json({ "message": `Location already exists with name: ${req.body.name}`}); // is this the validation we want?
-		} else {
+	    let location = await Location.findOne({name: req.body.name});
+	    if(location) {
+		    res.status(409).json({ "message": `Location already exists with name: ${req.body.name}`}); // is this the validation we want?
+	    }
             if(req.body.name && req.body.signup_url && req.body.channels) {
-                location = new Location(
-                    name = req.body.name,
-                    parent = req.body.parent || null,
-                    store_id = req.body.store_id || null,
-                    address1 = req.body.address1 || null,
-                    address2 = req.body.address2 || null,
-                    city = req.body.city || null,
-                    state = req.body.state || null,
-                    country = req.body.country || null,
-                    zip = Number(req.body.zip) || null,
-                    events = req.body.events || [],
-                    tags = req.body.tags || null,
-                    location_url = req.body.location_url || null,
-                    signup_url = req.body.signup_url || null,
-                    phone = req.body.phone || null,
-                    email = req.body.email || null,
-                    channels = req.body.channels
-                );
+                location = new Location({
+                    name : req.body.name,
+                    parent : req.body.parent || null,
+                    store_id : req.body.store_id || null,
+                    address1 : req.body.address1,
+                    address2 : req.body.address2 || null,
+                    city : req.body.city,
+                    state : req.body.state,
+                    country : req.body.country || null,
+                    zip : Number(req.body.zip),
+                    events : req.body.events || [],
+                    tags : req.body.tags || null,
+                    location_url : req.body.location_url || null,
+                    signup_url : req.body.signup_url || null,
+                    phone : req.body.phone || null,
+                    email : req.body.email || null,
+                    channels : req.body.channels
+                });
                 
                 const new_location = await location.save();	
                 res.status(200).json(new_location);
             } else {
-                res.status(400).json({ "message": "Missing parameters. Required: name, signup_url, channels"})
+                res.status(400).json({ "message": "Missing parameters. Required: name, city, state, zip, signup_url, channels"})
             }
-		}
+
 	} catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);
 	}
@@ -69,14 +69,14 @@ exports.location_create = async function(req, res) {
 // Location delete.
 exports.location_delete = async function(req, res) {
     try {		
-        Location.deleteOne({_id : req.params.id});
+        await Location.deleteOne({_id : req.params.id});
         res.json({"message" : `Location deleted with id: ${req.params.id}`});			
     } catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);	
     }
 };
 
-// Location update on PUT.
+// Location update on PATCH
 exports.location_update = async function(req, res) {
     try {		
 		const location = await Location.findById(req.params.id);
@@ -85,6 +85,7 @@ exports.location_update = async function(req, res) {
 		} else {
 			if (req.body.name && req.body.signup_url && req.body.channels ) {
 				const updated_location = await location.set(req.body);
+				await updated_location.save();
 				res.json(updated_location);
 			} else {
 				res.status(400).json({ "message": "Missing parameters. Required: name, signup_url, channels"})

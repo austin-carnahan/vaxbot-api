@@ -27,4 +27,4 @@ var LocationSchema = new Schema({
 });
 
 //Export function to create "SomeModel" model class
-module.exports = mongoose.model('Location', LocationSchema );
+module.exports = mongoose.model('Location', LocationSchema, "Locations" );

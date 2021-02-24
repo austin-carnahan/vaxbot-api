@@ -16,8 +16,8 @@ router.get('/:id', channel_controller.channel_detail);
 // DELETE request for removing a channel.
 router.delete('/:id', channel_controller.channel_delete);
 
-// PUT request for updating a channel.
-router.put('/:id', channel_controller.channel_update);
+// PATCH request for updating a channel.
+router.patch('/:id', channel_controller.channel_update);
 
 // POST request for subscribing to channel.
 router.post('/:id/subscribe', channel_controller.channel_subscribe);

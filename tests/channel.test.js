@@ -30,7 +30,7 @@ describe("v1/channels endpoints integration tests", () => {
     
     afterEach( async() => {
         console.log("deleting channel");
-        await Channel.deleteOne({ _id: channel.id });
+        await Channel.deleteMany();
     });
 
     test("GET v1/channels", async () => {
