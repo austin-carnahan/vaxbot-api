@@ -30,7 +30,7 @@ describe("v1/channels endpoints integration tests", () => {
     
     afterEach( async() => {
         console.log("deleting channel");
-        channel = await channel.deleteOne();
+        await Channel.deleteOne({ _id: channel.id });
     });
 
     test("GET v1/channels", async () => {
@@ -61,6 +61,62 @@ describe("v1/channels endpoints integration tests", () => {
                 expect(response.body._id).toBe(channel.id)
                 expect(response.body.name).toBe(channel.name)
                 expect(response.body.description).toBe(channel.description)
+            })
+    })
+    
+    test("DELETE v1/channels/:id", async () => {
+
+        await supertest(app)
+            .delete("/v1/channels/" + channel.id)
+            .expect(200)
+            .then(async (response) => {
+                // Check the response data
+                console.log(response.body.message)
+                expect(await Channel.findOne({ _id: channel.id })).toBeFalsy()
+            })
+    })
+    
+    test("PUT v1/channels/:id", async () => {
+        
+        const data = { 
+                name: "KCMO",
+                description: "Kansas city, MO" 
+            }
+        
+        await supertest(app)
+            .put("/v1/channels/" + channel.id)
+            .send(data)
+            .expect(200)
+            .then(async (response) => {
+                console.log(response.text);
+                // Check the response data
+                // Check the data in the database
+                const updated_channel = await Channel.findOne({ _id: channel.id })
+                expect(updated_channel).toBeTruthy()
+                expect(updated_channel.name).toBe(data.name)
+                expect(updated_channel.description).toBe(data.description)
+            })
+    })
+    
+        test("POST v1/channels", async () => {
+        
+        const data = { 
+                name: "KCMO",
+                description: "Kansas city, MO" 
+            }
+        
+        await supertest(app)
+            .post("/v1/channels")
+            .send(data)
+            //~ .expect(200)
+            .then(async (response) => {
+                console.log(response.text);
+                // Check the response data
+                // Check the data in the database
+                const new_channel = await Channel.findOne({ name: data.name })
+                expect(new_channel).toBeTruthy()
+                expect(new_channel.name).toBe(data.name)
+                expect(new_channel.description).toBe(data.description)
             })
     })
 })

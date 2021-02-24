@@ -27,16 +27,14 @@ exports.channel_detail = async function(req, res) {
 // Channel create on POST.
 exports.channel_create = async function(req, res) {			//need to work on default values
     try {		
-		const channel = await Channel.findOne(req.body.name);
+		let channel = await Channel.findOne({ name : req.body.name });
 		if(channel) {
 			res.status(409).json({ "message": `Channel already exists with name: ${req.body.name}`});
 		} else {
-			channel = new Channel(
-				name = req.body.name, 
-				description = req.body.description,
-				state = req.body.state,
-				country = req.body.country || null,
-				);
+			channel = new Channel({
+				name : req.body.name, 
+				description : req.body.description,
+			});
 			
 			const new_channel = await channel.save();	
 			res.status(200).json(new_channel);
@@ -49,7 +47,7 @@ exports.channel_create = async function(req, res) {			//need to work on default 
 // Channel delete
 exports.channel_delete = async function(req, res) {
 	try {		
-		Channel.deleteOne({_id : req.params.id});
+		await Channel.deleteOne({_id : req.params.id});
 		res.json({"message" : `Channel deleted with id: ${req.params.id}`});			
 	} catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);	
@@ -63,11 +61,13 @@ exports.channel_update = async function(req, res) {
 		if(!channel) {
 			res.status(404).json({ "message": `Unable to locate channel with id: ${req.params.id}`});
 		} else {
-			if (req.body.name && req.body.description && req.body.state ) {
+			if (req.body.name && req.body.description) {
 				const updated_channel = await channel.set(req.body);
+				await updated_channel.save();
 				res.json(updated_channel);
 			} else {
-				res.status(400).json({ "message": "Missing parameters. Required: name, description, state"})
+				//~ res.status(400).json(req);
+				res.status(400).json({ "message": `Missing parameters. Required: name, description \n Provided: ${req.body}`})
 			}
 		}
 	} catch(err) {

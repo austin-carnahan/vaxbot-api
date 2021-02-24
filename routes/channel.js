@@ -14,12 +14,12 @@ router.post('/', channel_controller.channel_create);
 router.get('/:id', channel_controller.channel_detail);
 
 // DELETE request for removing a channel.
-router.get('/:id', channel_controller.channel_delete);
+router.delete('/:id', channel_controller.channel_delete);
 
 // PUT request for updating a channel.
 router.put('/:id', channel_controller.channel_update);
 
 // POST request for subscribing to channel.
-router.put('/:id/subscribe', channel_controller.channel_subscribe);
+router.post('/:id/subscribe', channel_controller.channel_subscribe);
 
 module.exports = router;
