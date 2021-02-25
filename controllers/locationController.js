@@ -36,24 +36,24 @@ exports.location_create = async function(req, res) {
 		    res.status(409).json({ "message": `Location already exists with name: ${req.body.name}`}); // is this the validation we want?
 	    }
             if(req.body.name && req.body.signup_url && req.body.channels) {
-                location = new Location({
-                    name : req.body.name,
-                    parent : req.body.parent || null,
-                    store_id : req.body.store_id || null,
-                    address1 : req.body.address1,
-                    address2 : req.body.address2 || null,
-                    city : req.body.city,
-                    state : req.body.state,
-                    country : req.body.country || null,
-                    zip : Number(req.body.zip),
-                    events : req.body.events || [],
-                    tags : req.body.tags || null,
-                    location_url : req.body.location_url || null,
-                    signup_url : req.body.signup_url || null,
-                    phone : req.body.phone || null,
-                    email : req.body.email || null,
-                    channels : req.body.channels
-                });
+                location = new Location(req.body)
+                    //~ name : req.body.name,
+                    //~ parent : req.body.parent || null,
+                    //~ store_id : req.body.store_id || null,
+                    //~ address1 : req.body.address1,
+                    //~ address2 : req.body.address2 || null,
+                    //~ city : req.body.city,
+                    //~ state : req.body.state,
+                    //~ country : req.body.country || null,
+                    //~ zip : Number(req.body.zip),
+                    //~ events : req.body.events || [],
+                    //~ tags : req.body.tags || null,
+                    //~ location_url : req.body.location_url || null,
+                    //~ signup_url : req.body.signup_url || null,
+                    //~ phone : req.body.phone || null,
+                    //~ email : req.body.email || null,
+                    //~ channels : req.body.channels
+                //~ });
                 
                 const new_location = await location.save();	
                 res.status(200).json(new_location);
@@ -121,62 +121,26 @@ exports.location_search = async function(req, res) {
 // Batch update/upload locations.
 exports.location_batch = async function(req, res) {
     try {
+	
+	let response_data = []
+		
+	for(let i=0; i < req.body.length; i++) {
+	    let location = await Location.findOne({name: req.body[i].name});
+	    
+	    if(location){ //we patch the existing document
+		const updated_location = await location.set(req.body[i]);
+		await updated_location.save();
+		response_data.push(updated_location);
+	    } else { //we create a new documenet
+		location = new Location(req.body[i]);
+		const new_location = await location.save();
+		response_data.push(new_location);
+	    }
+	}
         
-        let locations = [];
-        
-        for(item in req.body.locations) {
-            
-            let filter = {
-                name: item.name,
-                address1: item.address1,
-                city: item.city,
-                state: item.state,
-                zip: Number(item.zip),
-            };
-            
-            let update = {
-                parent: req.body.parent || null,
-                store_id: req.body.store_id || null,
-                address2: req.body.address2 || null,
-                events: req.body.events || [],
-                tags: req.body.tags || null,
-                location_url: req.body.location_url || null,
-                signup_url: req.body.signup_url,
-                phone: req.body.phone || null,
-                email: req.body.email || null,
-                updated: Date.now(),
-                channels: req.body.channels,
-            }
-            
-            let publish = false;            
-            const old_location = await Location.findOne({filter});
-            
-            const new_location = await Location.findOneAndUpdate(filter, update, {
-                new: true,
-                upsert: true,
-            });
-            
-            if (new_location.events) {
-                if (new_location.events.length > 0) {       // we've found some events
-                    if(!old_location) {                     // this is a new record
-                        // publish this                     
-                    } else {                                // this is a record update
-                        let difference = new_location.events.filter(x => !old_location.events.includes(x));
-                        if(difference.length > 0) {         // there are events in this update that are new
-                            // publish this
-                        }
-                    }
-                }
-            }
-            
-            locations.push(new_location);
-
-        }
-        
-        res.json(locations);
+        res.status(200).json(response_data);
         
     } catch(err) {
         res.status(500).send(`Oops! Something went wrong: \n ${err}`);
     }
-    res.send('NOT IMPLEMENTED: Batch update locations POST');
 };

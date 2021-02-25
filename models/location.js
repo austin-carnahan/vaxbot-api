@@ -20,11 +20,11 @@ var LocationSchema = new Schema({
     signup_url: { type: String, required: true },
     phone: String,
     email: String,
-    updated: { type: Date, default: Date.now() },
+    //~ updated: { type: Date, default: Date.now() },
     published: { type: Boolean, default: false },
     channels: [{ type: Schema.Types.ObjectId, ref: 'Channel', required: true }],
 
-});
+}, { timestamps: true });
 
 //Export function to create "SomeModel" model class
 module.exports = mongoose.model('Location', LocationSchema, "Locations" );
