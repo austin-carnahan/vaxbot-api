@@ -26,6 +26,7 @@ describe("v1/channels endpoints integration tests", () => {
         channel = await Channel.create({
             name: "STL",
             description: "St. Louis, MO, USA",
+            state: "MO"
         })
     });
     
@@ -81,7 +82,8 @@ describe("v1/channels endpoints integration tests", () => {
         
         const data = { 
                 name: "KCMO",
-                description: "Kansas city, MO" 
+                description: "Kansas city, MO", 
+                state: "MO",
             }
         
         await supertest(app)
@@ -99,12 +101,13 @@ describe("v1/channels endpoints integration tests", () => {
             })
     })
     
-        test("POST v1/channels", async () => {
+    test("POST v1/channels", async () => {
         
         const data = { 
                 name: "KCMO",
-                description: "Kansas city, MO" 
-            }
+                state: "MO",
+                description: "Kansas city, MO",
+        }
         
         await supertest(app)
             .post("/v1/channels")
@@ -126,12 +129,12 @@ describe("v1/locations endpoints integration tests", () => {
     
     let location;
     let loc_channel;
-    let date1;
-    let date2;
+    //~ let date1;
+    //~ let date2;
     
     beforeAll( async () => {
-        date1 = new Date('December 19, 2021 09:06:00Z');
-        date2 = new Date('December 17, 2021 016:55:00Z');
+        //~ date1 = new Date('December 19, 2021 09:06:00Z');
+        //~ date2 = new Date('December 17, 2021 016:55:00Z');
     });
     
     beforeEach( async () => {
@@ -140,20 +143,20 @@ describe("v1/locations endpoints integration tests", () => {
         loc_channel = await Channel.create({
             name: "COL",
             description: "Columbia, MO, USA",
+            state: "MO"
         })
         
         location = await Location.create({
             name: "Shrewsbury Superstore",
-            parent: "Walmart",
-            store_id: 1234,
             address1: "1234 Walmart st",
             city: "St. Louis",
             state: "MO",
             country: "USA",
             zip: 63104,
-            events: [date1, date2],
-            tags: ["apointment"], //needs review
-            signup_url: "www.walmart.com/pharmacy/covid",
+            tags: ["apointment"], //needs review,
+            source_name: "vaccinefinder.gov",
+            source_url: "www.walmart.com",
+            contact_url: "www.walmart.com/pharmacy/covid",
             channels: [loc_channel.id],
         })
     });
@@ -177,7 +180,6 @@ describe("v1/locations endpoints integration tests", () => {
                 // Check the response data
                 expect(response.body[0]._id).toBe(location.id)
                 expect(response.body[0].name).toBe(location.name)
-                expect(response.body[0].events.length).toBe(location.events.length)
                 expect(response.body[0].channels.length).toBe(location.channels.length)
             })
     })
@@ -207,20 +209,16 @@ describe("v1/locations endpoints integration tests", () => {
             })
     })
     
-    test("PUT v1/locations/:id", async () => {
-        
-        const date3 = new Date('August 19, 2022 16:09:00Z');
+    test("PATCH v1/locations/:id", async () => {
         
         const data = { 
                 name: "Maplewood Pharmacy",
-                parent: "Walgreens",
                 address1: "1234 Walmart st",
                 city: "St. Louis",
                 state: "MO",
                 zip: 63104,
-                events: [date3],
-                tags: ["apointment", "first-come"], //needs review
-                signup_url: "www.walmart.com/pharmacy/covid",
+                tags: ["apointment", "first-come"],
+                contact_url: "www.walmart.com/pharmacy/covid",
                 channels: [loc_channel.id],
             }
         
@@ -232,25 +230,21 @@ describe("v1/locations endpoints integration tests", () => {
                 const updated_loc = await Location.findOne({ _id: location.id })
                 expect(updated_loc).toBeTruthy()
                 expect(updated_loc.name).toBe(data.name)
-                expect(updated_loc.store_id).toBe(location.store_id)
-                expect(updated_loc.parent).toBe(data.parent)
-                expect(updated_loc.events.length).toBe(1)
             })
     })
     
     test("POST v1/locations", async () => {
-        const date3 = new Date('August 19, 2022 16:09:00Z');
         
         const data = { 
                 name: "South City Pharmacy",
-                parent: "CVS",
                 address1: "1245 Henrietta st",
+                source_name: "vaccinefinder.gov",
+                source_url: "www.walmart.com",
                 city: "St. Louis",
                 state: "MO",
                 zip: 63104,
-                events: [date3],
                 tags: ["apointment", "first-come"], //needs review
-                signup_url: "www.walmart.com/pharmacy/covid",
+                contact_url: "www.walmart.com/pharmacy/covid",
                 channels: [loc_channel.id],
             }
         
@@ -259,75 +253,71 @@ describe("v1/locations endpoints integration tests", () => {
             .send(data)
             .expect(200)
             .then(async (response) => {
+                //~ console.log(response)
                 const new_loc = await Location.findOne({ name: data.name })
                 expect(new_loc).toBeTruthy()
                 expect(new_loc.name).toBe(data.name)
                 expect(new_loc.address1).toBe(data.address1)
-                expect(new_loc.events.length).toBe(1)
             })
     })
     
     test("POST v1/locations/batch", async () => {
         
-        let date3 = new Date('April 12, 2021 7:45:00Z');    //new dates
-        let date4 = new Date('June 6, 2021 12:32:00Z');
         
         let location_no_events = await Location.create({
             name: "Chuck E Cheeze",      //new loc w empty events
-            parent: "Mickey",
-            store_id: 515483241584,
+            source_name: "vaccinefinder.gov",
+            source_url: "www.walmart.com",
             address1: "2225 Sesame Street",
             city: "St. Louis",
             state: "MO",
             country: "USA",
             zip: 63115,
-            events: [],
             tags: ["appointment"],
-            signup_url: "www.CEC.com/pharmacy/covid",
+            contact_url: "www.CEC.com/pharmacy/covid",
             channels: ["603728f58974f823c9e2a0d1"],
         })
         
         const data = [
             {
                 name: "Shrewsbury Superstore",      //existing
-                parent: "Walmart",
-                store_id: 1234,
+                source_name: "vaccinefinder.gov",
+                source_url: "www.walmart.com",
                 address1: "1234 Walmart st",
                 city: "St. Louis",
                 state: "MO",
                 country: "USA",
                 zip: 63104,
-                events: [date3],
                 tags: ["apointment"],
-                signup_url: "www.walmart.com/pharmacy/covid",
+                contact_url: "www.walmart.com/pharmacy/covid",
                 channels: ["603728f58974f823c9e2a0d1"],
             },
             {
                 name: "CVS Downtown",                   //new
-                parent: "CVS",
-                store_id: 2,
+                source_name: "vaccinefinder.gov",
+                source_url: "www.walmart.com",
+                cdc_id: 223,
                 address1: "1234 Main st",
                 city: "St. Louis",
                 state: "MO",
                 country: "USA",
                 zip: 63104,
-                events: [],
                 tags: ["apointment"],
-                signup_url: "www.CVS.com/pharmacy/covid",
+                contact_url: "www.CVS.com/pharmacy/covid",
                 channels: ["603728f58974f823c9e2a0d1"],
             },
             {
                 name: "Chuck E Cheeze",             //existing
-                parent: "Mickey",
-                store_id: 515483241584,
+                source_name: "vaccinefinder.gov",
+                source_url: "www.walmart.com",
+                cdc_id: 515483241584,
                 address1: "2225 Sesame Street",
                 city: "St. Louis",
                 state: "MO",
                 country: "USA",
                 zip: 63115,
-                events: [date1, date2, date3, date4],
                 tags: ["appointment"],
-                signup_url: "www.CEC.com/pharmacy/covid",
+                contact_url: "www.CEC.com/pharmacy/covid",
                 channels: ["603728f58974f823c9e2a0d1"],
             }
         ]
@@ -344,15 +334,13 @@ describe("v1/locations endpoints integration tests", () => {
 
                 // Check if we updated the existing event
                 const new_loc_0 = await Location.findOne({ name: data[0].name })
-                expect(new_loc_0.events.length).toBe(data[0].events.length)
                 
                 // Check if we created new events
                 const new_loc_1 = await Location.findOne({ name: data[1].name })
                 expect(new_loc_1).toBeTruthy()
                 expect(new_loc_1.name).toBe(data[1].name)
-                
+                console.log(response.body)
                 // Check response data
-                expect(response.body[0].events[0]).toBe(data[0].events[0].toJSON());
                 
                 
             })

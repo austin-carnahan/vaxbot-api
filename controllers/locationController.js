@@ -1,4 +1,26 @@
 var Location = require('../models/location');
+const fetch = require('node-fetch');
+
+async function standardize_address(string) {
+    try{
+        console.log("Pinging US Census Bureau...")
+        const standardized_address = await fetch(encodeURI(
+            `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${string}&benchmark=2020&format=json`))
+                .then(async (response) => await response.json())
+                .then(json => json.result.addressMatches[0] ? json.result.addressMatches[0].matchedAddress : null)
+        if(standardized_address) {
+            console.log(`SUCCESS. Retrieved strandardized address: ${standardized_address}`)
+            return standardized_address
+        }
+        console.log(`FAILURE: Could not find standardized address: ${string}`)
+        return null
+    } catch(err) {
+        console.log(`ERROR: Something went wrong \n ${err}`);
+        return null
+    }
+	
+}
+
 
 // return list of all Location GET
 exports.location_list = async function(req, res) {
@@ -30,31 +52,17 @@ exports.location_detail = async function(req, res) {
 
 // Handle Location create on POST.
 exports.location_create = async function(req, res) {
-    try {		
+    try {
+        
+        let formatted_addr = await standardize_address(`${req.body.address1},${req.body.address2 ? req.body.address2 : ""},${req.body.city},${req.body.state},${req.body.zip}`);
+        		
 	    let location = await Location.findOne({name: req.body.name});
 	    if(location) {
 		    res.status(409).json({ "message": `Location already exists with name: ${req.body.name}`}); // is this the validation we want?
 	    }
-            if(req.body.name && req.body.signup_url && req.body.channels) {
-                location = new Location(req.body)
-                    //~ name : req.body.name,
-                    //~ parent : req.body.parent || null,
-                    //~ store_id : req.body.store_id || null,
-                    //~ address1 : req.body.address1,
-                    //~ address2 : req.body.address2 || null,
-                    //~ city : req.body.city,
-                    //~ state : req.body.state,
-                    //~ country : req.body.country || null,
-                    //~ zip : Number(req.body.zip),
-                    //~ events : req.body.events || [],
-                    //~ tags : req.body.tags || null,
-                    //~ location_url : req.body.location_url || null,
-                    //~ signup_url : req.body.signup_url || null,
-                    //~ phone : req.body.phone || null,
-                    //~ email : req.body.email || null,
-                    //~ channels : req.body.channels
-                //~ });
-                
+            if(req.body.name && req.body.channels) {
+                location = new Location(req.body);
+                location.standardized_address = formatted_addr;
                 const new_location = await location.save();	
                 res.status(200).json(new_location);
             } else {
@@ -83,7 +91,7 @@ exports.location_update = async function(req, res) {
 		if(!location) {
 			res.status(404).json({ "message": `Unable to find location with id: ${req.params.id}`});
 		} else {
-			if (req.body.name && req.body.signup_url && req.body.channels ) {
+			if (req.body.name && req.body.channels ) {
 				const updated_location = await location.set(req.body);
 				await updated_location.save();
 				res.json(updated_location);
@@ -124,17 +132,27 @@ exports.location_batch = async function(req, res) {
 	
 	let response_data = []
 		
-	for(let i=0; i < req.body.length; i++) {
-	    let location = await Location.findOne({name: req.body[i].name});
+	for(let item of req.body) {
+        let formatted_addr = await standardize_address(`${item.address1},${item.address2 ? item.address2 : ""},${item.city},${item.state},${item.zip}`)
+	    
+        if (!formatted_addr) {
+            console.log(`FAILURE. Unable to batch upload location ${item.name}. Address Standardization Failure. Skipping...`);
+            continue
+        }
+        
+        let location = await Location.findOne({
+		standardized_address: formatted_addr,
+		});
 	    
 	    if(location){ //we patch the existing document
-		const updated_location = await location.set(req.body[i]);
-		await updated_location.save();
-		response_data.push(updated_location);
+            const updated_location = await location.set(item);
+            await updated_location.save();
+            response_data.push(updated_location);
 	    } else { //we create a new documenet
-		location = new Location(req.body[i]);
-		const new_location = await location.save();
-		response_data.push(new_location);
+            location = new Location(item);
+            location.standardized_address = formatted_addr;
+            const new_location = await location.save();
+            response_data.push(new_location);
 	    }
 	}
         

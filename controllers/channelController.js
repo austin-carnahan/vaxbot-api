@@ -34,6 +34,7 @@ exports.channel_create = async function(req, res) {			//need to work on default 
 			channel = new Channel({
 				name : req.body.name, 
 				description : req.body.description,
+				state: req.body.state,
 			});
 			
 			const new_channel = await channel.save();	

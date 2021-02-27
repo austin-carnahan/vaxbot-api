@@ -7,6 +7,7 @@ var Schema = mongoose.Schema;
 var ChannelSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
+  state: {type: String, required: true },
   posts: { type: Number, default: 0},
 });
 
