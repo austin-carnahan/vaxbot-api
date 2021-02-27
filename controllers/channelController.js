@@ -4,6 +4,9 @@ var Channel = require('../models/channel');
 exports.channel_list = async function(req, res) {
 	try{
 		const channels = await Channel.find();
+		if(!channels) {
+			res.status(400).json({ "message": `Unable to locate any channels`});
+		}
 		res.json(channels);
 	} catch(err) {
 		res.status(500).send(`Oops! Something went wrong: \n ${err}`);

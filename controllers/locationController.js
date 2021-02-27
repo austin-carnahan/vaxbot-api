@@ -130,35 +130,41 @@ exports.location_search = async function(req, res) {
 exports.location_batch = async function(req, res) {
     try {
 	
-	let response_data = []
-		
-	for(let item of req.body) {
-        let formatted_addr = await standardize_address(`${item.address1},${item.address2 ? item.address2 : ""},${item.city},${item.state},${item.zip}`)
-	    
-        if (!formatted_addr) {
-            console.log(`FAILURE. Unable to batch upload location ${item.name}. Address Standardization Failure. Skipping...`);
-            continue
+        let response_data = []
+            
+        for(let item of req.body) {
+            let formatted_addr = await standardize_address(`${item.address1},${item.address2 ? item.address2 + "," : ""}${item.city},${item.state}${item.zip ? "," + item.zip : ""}`)
+            
+            if (!formatted_addr) {
+                console.log(`FAILURE. Unable to upload location ${item.name}. Address Standardization Failure. Skipping...`);
+                continue
+            }
+            
+            console.log("searching for existing location...");
+            let location = await Location.findOne({
+                standardized_address: formatted_addr,
+            });
+            
+            console.log(`we found: ${location}`);
+            
+            if(location){ //we patch the existing document
+                console.log("entered block 1");
+                const updated_location = await location.set(item);
+                await updated_location.save();
+                response_data.push(updated_location);
+            } else { //we create a new documenet
+                console.log("entered block 2");
+                location = new Location(item);
+                location.standardized_address = formatted_addr;
+                const new_location = await location.save();
+                response_data.push(new_location);
+            }
         }
-        
-        let location = await Location.findOne({
-		standardized_address: formatted_addr,
-		});
-	    
-	    if(location){ //we patch the existing document
-            const updated_location = await location.set(item);
-            await updated_location.save();
-            response_data.push(updated_location);
-	    } else { //we create a new documenet
-            location = new Location(item);
-            location.standardized_address = formatted_addr;
-            const new_location = await location.save();
-            response_data.push(new_location);
-	    }
-	}
         
         res.status(200).json(response_data);
         
     } catch(err) {
+        console.log(`ERROR: ${err}`);
         res.status(500).send(`Oops! Something went wrong: \n ${err}`);
     }
 };
