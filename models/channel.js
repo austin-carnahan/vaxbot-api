@@ -9,6 +9,7 @@ var ChannelSchema = new Schema({
   description: { type: String, required: true },
   state: {type: String, required: true },
   posts: { type: Number, default: 0},
+  providers: { type: Number, default: 0},
 });
 
 //Export function to create "SomeModel" model class

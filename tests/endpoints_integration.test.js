@@ -2,7 +2,7 @@ require('dotenv').config()
 const mongoose = require("mongoose")
 const create_server = require("../server")
 var Channel = require('../models/channel');
-var Location = require('../models/location');
+var Provider = require('../models/provider');
 const supertest = require('supertest');
 
 beforeAll( async () => {
@@ -125,10 +125,10 @@ describe("v1/channels endpoints integration tests", () => {
     })
 })
 
-describe("v1/locations endpoints integration tests", () => {
+describe("v1/providers endpoints integration tests", () => {
     
-    let location;
-    let loc_channel;
+    let provider;
+    let prov_channel;
     //~ let date1;
     //~ let date2;
     
@@ -138,15 +138,15 @@ describe("v1/locations endpoints integration tests", () => {
     });
     
     beforeEach( async () => {
-        console.log("creating new instance of Location...");
+        console.log("creating new instance of Provider...");
         
-        loc_channel = await Channel.create({
+        prov_channel = await Channel.create({
             name: "COL",
             description: "Columbia, MO, USA",
             state: "MO"
         })
         
-        location = await Location.create({
+        provider = await Provider.create({
             name: "Shrewsbury Superstore",
             address1: "1234 Walmart st",
             city: "St. Louis",
@@ -157,20 +157,20 @@ describe("v1/locations endpoints integration tests", () => {
             source_name: "vaccinefinder.gov",
             source_url: "www.walmart.com",
             contact_url: "www.walmart.com/pharmacy/covid",
-            channels: [loc_channel.id],
+            channels: [prov_channel.id],
         })
     });
     
     afterEach( async() => {
-        console.log("deleting location");
-        await Location.deleteMany();
+        console.log("deleting provider");
+        await Provider.deleteMany();
         await Channel.deleteMany();
     });
     
-    test("GET v1/locations", async () => {
+    test("GET v1/providers", async () => {
 
         await supertest(app)
-            .get("/v1/locations")
+            .get("/v1/providers")
             .expect(200)
             .then((response) => {
                 // Check the response type and length
@@ -178,38 +178,38 @@ describe("v1/locations endpoints integration tests", () => {
                 expect(response.body.length).toEqual(1)
 
                 // Check the response data
-                expect(response.body[0]._id).toBe(location.id)
-                expect(response.body[0].name).toBe(location.name)
-                expect(response.body[0].channels.length).toBe(location.channels.length)
+                expect(response.body[0]._id).toBe(provider.id)
+                expect(response.body[0].name).toBe(provider.name)
+                expect(response.body[0].channels.length).toBe(provider.channels.length)
             })
     })
     
-    test("GET v1/locations/:id", async () => {
+    test("GET v1/providers/:id", async () => {
 
         await supertest(app)
-            .get("/v1/locations/" + location.id)
+            .get("/v1/providers/" + provider.id)
             .expect(200)
             .then((response) => {
                 // Check the response data
-                expect(response.body._id).toBe(location.id)
-                expect(response.body.name).toBe(location.name)
-                expect(response.body.address1).toBe(location.address1)
+                expect(response.body._id).toBe(provider.id)
+                expect(response.body.name).toBe(provider.name)
+                expect(response.body.address1).toBe(provider.address1)
             })
     })
     
-    test("DELETE v1/locations/:id", async () => {
+    test("DELETE v1/providers/:id", async () => {
 
         await supertest(app)
-            .delete("/v1/locations/" + location.id)
+            .delete("/v1/providers/" + provider.id)
             .expect(200)
             .then(async (response) => {
                 // Check the response data
                 console.log(response.body.message)
-                expect(await Location.findOne({ _id: location.id })).toBeFalsy()
+                expect(await Provider.findOne({ _id: provider.id })).toBeFalsy()
             })
     })
     
-    test("PATCH v1/locations/:id", async () => {
+    test("PATCH v1/providers/:id", async () => {
         
         const data = { 
                 name: "Maplewood Pharmacy",
@@ -219,21 +219,21 @@ describe("v1/locations endpoints integration tests", () => {
                 zip: 63104,
                 tags: ["apointment", "first-come"],
                 contact_url: "www.walmart.com/pharmacy/covid",
-                channels: [loc_channel.id],
+                channels: [prov_channel.id],
             }
         
         await supertest(app)
-            .patch("/v1/locations/" + location.id)
+            .patch("/v1/providers/" + provider.id)
             .send(data)
             .expect(200)
             .then(async (response) => {
-                const updated_loc = await Location.findOne({ _id: location.id })
-                expect(updated_loc).toBeTruthy()
-                expect(updated_loc.name).toBe(data.name)
+                const updated_prov = await Provider.findOne({ _id: provider.id })
+                expect(updated_prov).toBeTruthy()
+                expect(updated_prov.name).toBe(data.name)
             })
     })
     
-    test("POST v1/locations", async () => {
+    test("POST v1/providers", async () => {
         
         const data = { 
                 name: "South City Pharmacy",
@@ -245,27 +245,27 @@ describe("v1/locations endpoints integration tests", () => {
                 zip: 63104,
                 tags: ["apointment", "first-come"], //needs review
                 contact_url: "www.walmart.com/pharmacy/covid",
-                channels: [loc_channel.id],
+                channels: [prov_channel.id],
             }
         
         await supertest(app)
-            .post("/v1/locations")
+            .post("/v1/providers")
             .send(data)
             .expect(200)
             .then(async (response) => {
                 //~ console.log(response)
-                const new_loc = await Location.findOne({ name: data.name })
-                expect(new_loc).toBeTruthy()
-                expect(new_loc.name).toBe(data.name)
-                expect(new_loc.address1).toBe(data.address1)
+                const new_prov = await Provider.findOne({ name: data.name })
+                expect(new_prov).toBeTruthy()
+                expect(new_prov.name).toBe(data.name)
+                expect(new_prov.address1).toBe(data.address1)
             })
     })
     
-    test("POST v1/locations/batch", async () => {
+    test("POST v1/providers/batch", async () => {
         
         
-        let location_no_events = await Location.create({
-            name: "Chuck E Cheeze",      //new loc w empty events
+        let provider_no_events = await Provider.create({
+            name: "Chuck E Cheeze",      //new prov w empty events
             source_name: "vaccinefinder.gov",
             source_url: "www.walmart.com",
             address1: "2225 Sesame Street",
@@ -324,7 +324,7 @@ describe("v1/locations endpoints integration tests", () => {
         
         
         await supertest(app)
-            .post("/v1/locations/batch")
+            .post("/v1/providers/batch")
             .send(data)
             .expect(200)
             .then(async (response) => {
@@ -333,12 +333,12 @@ describe("v1/locations endpoints integration tests", () => {
                 expect(response.body.length).toEqual(3)
 
                 // Check if we updated the existing event
-                const new_loc_0 = await Location.findOne({ name: data[0].name })
+                const new_prov_0 = await Provider.findOne({ name: data[0].name })
                 
                 // Check if we created new events
-                const new_loc_1 = await Location.findOne({ name: data[1].name })
-                expect(new_loc_1).toBeTruthy()
-                expect(new_loc_1.name).toBe(data[1].name)
+                const new_prov_1 = await Provider.findOne({ name: data[1].name })
+                expect(new_prov_1).toBeTruthy()
+                expect(new_prov_1.name).toBe(data[1].name)
                 console.log(response.body)
                 // Check response data
                 

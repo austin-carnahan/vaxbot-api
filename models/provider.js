@@ -22,11 +22,10 @@ var ProviderSchema = new Schema({
     tags: [String],
     dates: [Date],
     contact_url: { type: String },
-    //~ updated: { type: Date, default: Date.now() },
     vaccine_available: { type: Boolean, default: false },
     vaccine_tags: [String],
     published: { type: Boolean, default: false },
-    channels: [{ type: Schema.Types.ObjectId, ref: 'Channel', required: true }],
+    channel: { type: Schema.Types.ObjectId, ref: 'Channel', required: true },
 
 }, { timestamps: true });
 
