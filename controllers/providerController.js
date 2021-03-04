@@ -155,15 +155,22 @@ exports.provider_batch = async function(req, res) {
         for(let item of req.body) {
             let formatted_addr = await standardize_address(`${item.address1},${item.address2 ? item.address2 + "," : ""}${item.city},${item.state}${item.zip ? "," + item.zip : ""}`)
             
-            if (!formatted_addr) {
+            if (!formatted_addr && !item.source_name == "MO Department of Health") {
                 console.log(`FAILURE. Unable to upload provider ${item.name}. Address Standardization Failure. Skipping...`);
                 continue
             }
             
             console.log("searching for existing provider...");
-            let provider = await Provider.findOne({
+            let provider = null;
+            if(!item.source_name == "MO Department of Health")      // Janky Janky Janky....
+                provider = await Provider.findOne({
                 standardized_address: formatted_addr,
-            });
+                });
+            else {
+                provider = await Provider.findOne({
+                address1: item.address1,
+                });
+            }
             
             if(provider){ //we patch the existing document
                 console.log(`we found: ${provider.name} @${provider.standardized_address}`);

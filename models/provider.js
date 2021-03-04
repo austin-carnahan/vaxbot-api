@@ -6,11 +6,11 @@ var Schema = mongoose.Schema;
 
 var ProviderSchema = new Schema({
     name: { type: String, required: true },
-    cdc_id: String,
-    standardized_address: String,
     source_updated: Date,
     source_url: { type: String, required: true },
     source_name: { type: String, required: true },
+    source_id: String,
+    standardized_address: String,
     address1: { type: String, required: true },
     address2: String,
     city: { type: String, required: true },
