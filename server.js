@@ -4,7 +4,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const redis = require('redis')
+const redis = require('redis');
+var compression = require('compression');
+var helmet = require('helmet');
 
 var index_router = require('./routes/index');
 var providers_router = require('./routes/provider');
@@ -24,7 +26,9 @@ function create_server() {
         app.set('publisher', publisher) 
         console.log('pubsub server connection ready')
     })
-        
+    
+    app.use(helmet());
+    app.use(compression()); //Compress all routes    
     app.use(logger('dev'));
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
