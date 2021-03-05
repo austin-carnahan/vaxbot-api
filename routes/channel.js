@@ -1,17 +1,19 @@
 var express = require('express');
 var router = express.Router();
-
-// Require controller modules.
+const authenticate = require('../controllers/authController.js');
 var channel_controller = require('../controllers/channelController');
 
 // GET request for listing all channels.
 router.get('/', channel_controller.channel_list);
 
-// POST request for creating a channel.
-router.post('/', channel_controller.channel_create);
-
 // GET request for getting a channels details.
 router.get('/:id', channel_controller.channel_detail);
+
+// Require authorization for non-read-only endpoints
+router.use(authenticate)
+
+// POST request for creating a channel.
+router.post('/', channel_controller.channel_create);
 
 // DELETE request for removing a channel.
 router.delete('/:id', channel_controller.channel_delete);
