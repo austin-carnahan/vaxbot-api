@@ -8,13 +8,6 @@ async function publish_or_nah(req, updated_record, existing_record_availability 
         let string_record = JSON.stringify(updated_record);
         req.app.get('publisher').publish(string_channel, string_record)
         console.log("Record published");
-    //~ } else if(updated_record.vaccine_available) {
-        //~ //publish
-        //~ await updated_record.populate('channel').execPopulate();
-        //~ const channel = updated_record.channel;
-        //~ console.log(channel.name);
-        //~ req.app.get('publisher').publish("STL", channel.description)
-        //~ console.log("Record published");
     } else {
         console.log("Record not published");
     }
@@ -153,27 +146,23 @@ exports.provider_batch = async function(req, res) {
         let response_data = []
             
         for(let item of req.body) {
-            let formatted_addr = await standardize_address(`${item.address1},${item.address2 ? item.address2 + "," : ""}${item.city},${item.state}${item.zip ? "," + item.zip : ""}`)
-            
-            if (!formatted_addr && !item.source_name == "MO Department of Health") {
-                console.log(`FAILURE. Unable to upload provider ${item.name}. Address Standardization Failure. Skipping...`);
-                continue
-            }
-            
             console.log("searching for existing provider...");
             let provider = null;
-            if(!item.source_name == "MO Department of Health")      // Janky Janky Janky....
+            
+            if(item.source_id) {
                 provider = await Provider.findOne({
-                standardized_address: formatted_addr,
+                source_id: item.source_id,
                 });
-            else {
+            } else {
                 provider = await Provider.findOne({
                 address1: item.address1,
+                city: item.city,
+                state: item.state,
                 });
             }
             
             if(provider){ //we patch the existing document
-                console.log(`we found: ${provider.name} @${provider.standardized_address}`);
+                console.log(`we found: ${provider.name} @${provider.address1}`);
                 const existing_record_availability = provider.vaccine_available;
                 const updated_provider = await provider.set(item);
                 await updated_provider.save();
@@ -184,7 +173,6 @@ exports.provider_batch = async function(req, res) {
             } else { //we create a new documenet
                 console.log("No record found. Creating new Provider...");
                 provider = new Provider(item);
-                provider.standardized_address = formatted_addr;
                 const new_provider = await provider.save();
                 await new_provider.populate('channel').execPopulate();
                 response_data.push(new_provider);
