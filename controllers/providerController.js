@@ -120,12 +120,15 @@ exports.provider_update = async function(req, res) {
 // Search for providers.
 exports.provider_search = async function(req, res) {
     try {
-        console.log(req.query);
-        // Filter query    
+ 
         let filter = {};
         if(req.query) {
             for (param in req.query) {
                 if(param == "lat" || param == "lon" || param == "radius") {
+                    continue;
+                }
+                if(param == "vaccine_available") {
+                    filter[param] = Boolean(req.query[param]);
                     continue;
                 }
                 filter[param] = req.query[param];
@@ -133,40 +136,55 @@ exports.provider_search = async function(req, res) {
             
             // Geographic query
             if(req.query.lon && req.query.lat) {
+                let max_distance_meters = 1000 * 1609.34;		//FIX ME ONE DAY!
                 if(req.query.radius) {
-                    let distance_meters = Number(req.query.radius) * 1609.34;
-                
-                    filter['location'] = {
-                        $near: {
-                            $maxDistance: distance_meters,
-                            $geometry: {
-                                type: 'Point',
+                    max_distance_meters = Number(req.query.radius) * 1609.34;
+                }
+
+                Provider.aggregate([
+                    {
+                        $geoNear : {
+                            near : {
+                                type: "Point",
                                 coordinates: [Number(req.query.lon), Number(req.query.lat)],
                             },
-                        },
+                            distanceField: "dist.calculated",
+                            maxDistance: max_distance_meters,
+                            distanceMultiplier: 1/1609.344,
+                            spherical: true,
+                            query: filter
+                        }
                     }
+                ], (err, results) => {
+                        if(err) {
+                            console.log(`ERROR: ${err}`);
+                            throw new Error(err);
+                        } else {
+                            res.json(results);
+                        }
+                    })
+            } else {
+                // regular filter query
+                const providers = await Provider.find(filter);
+            
+                if(!providers) {
+                    res.status(404).json({ "message": `Unable to find providers with parameters: ${query_obj}`})
                 } else {
-                    filter['location'] = {
-                        $near: {
-                            $geometry: {
-                                type: 'Point',
-                                coordinates: [Number(req.query.lon), Number(req.query.lat)],
-                            },
-                        },
-                    }
+                    res.json(providers);
                 }
             }
-        }
-        
-        const providers = await Provider.find(filter);
-        
-        if(!providers) {
-            res.status(404).json({ "message": `Unable to find providers with parameters: ${query_obj}`})
         } else {
-            res.json(providers);
+            // empty filter, return all providers
+            const providers = await Provider.find(filter);
+            
+            if(!providers) {
+                res.status(404).json({ "message": `Unable to find providers with parameters: ${query_obj}`})
+            } else {
+                res.json(providers);
+            }
         }
-        
     } catch (err) {
+        console.log(`ERROR: ${err}`);
         res.status(500).send(`Oops! Something went wrong: \n ${err}`);
     }
 
