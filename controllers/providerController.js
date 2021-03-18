@@ -120,9 +120,64 @@ exports.provider_update = async function(req, res) {
 // Search for providers.
 exports.provider_search = async function(req, res) {
     try {
+        // Geographic query
+        //~ if(req.query.params.includes(lon) && req.query.params.includes(lat) {
+            //~ let distance_meters = null;
+            //~ if(request.query.params.includes(radius)) {
+                //~ distance_meters = Number(request.query.params.radius) * 1609.34;
+            //~ }
+            
+            //~ Provider.find({
+				//~ location: {
+					//~ $near: {
+						//~ $maxDistance: distance_meters,
+						//~ $geometry: {
+							//~ type: 'Point',
+							//~ coordinates: [Number(req.query.params.lon), Number(req.query.params.lat)],
+						//~ },
+					//~ },
+				//~ },
+			//~ }).find((error, results) => {
+                //~ if (error) throw(error);
+                //~ res.json(results);
+            //~ });
+        //~ }
+        console.log(req.query);
+        // Filter query    
         let filter = {};
-        for (param in req.query) {
-            filter[param] = req.query[param];
+        if(req.query) {
+            for (param in req.query) {
+                if(param == "lat" || param == "lon" || param == "radius") {
+                    continue;
+                }
+                filter[param] = req.query[param];
+            }
+            
+            // Geographic query
+            if(req.query.lon && req.query.lat) {
+                if(req.query.radius) {
+                    let distance_meters = Number(req.query.radius) * 1609.34;
+                
+                    filter['location'] = {
+                        $near: {
+                            $maxDistance: distance_meters,
+                            $geometry: {
+                                type: 'Point',
+                                coordinates: [Number(req.query.lon), Number(req.query.lat)],
+                            },
+                        },
+                    }
+                } else {
+                    filter['location'] = {
+                        $near: {
+                            $geometry: {
+                                type: 'Point',
+                                coordinates: [Number(req.query.lon), Number(req.query.lat)],
+                            },
+                        },
+                    }
+                }
+            }
         }
         
         const providers = await Provider.find(filter);
