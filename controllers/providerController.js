@@ -120,7 +120,7 @@ exports.provider_update = async function(req, res) {
 // Search for providers.
 exports.provider_search = async function(req, res) {
     try {
-        //~ console.log(req.query);
+        console.log(req.query);
         // Filter query    
         let filter = {};
         if(req.query) {
@@ -218,6 +218,21 @@ exports.provider_batch = async function(req, res) {
         }
         
         res.status(200).json(response_data);
+        
+    } catch(err) {
+        console.log(`ERROR: ${err}`);
+        res.status(500).send(`Oops! Something went wrong: \n ${err}`);
+    }
+};
+
+exports.providers_meta = async function providers_meta(req, res) {
+    try {
+        let provider = await Provider.findOne().sort({"updatedAt": -1 });
+        let last_scan = provider.updatedAt;
+        let count = await Provider.estimatedDocumentCount();
+        let count_available = await Provider.countDocuments({vaccine_available: true});
+        
+        res.status(200).json({"last_scan": last_scan, "providers_scanned": count, "providers_with_vaccine": count_available});
         
     } catch(err) {
         console.log(`ERROR: ${err}`);

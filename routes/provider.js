@@ -9,6 +9,9 @@ router.get('/', provider_controller.provider_list);
 // GET request for searching providers.
 router.get('/search', provider_controller.provider_search);
 
+// GET request for metadata on providers collection.
+router.get('/metadata', provider_controller.providers_meta);
+
 // GET request for getting provider details.
 router.get('/:id', provider_controller.provider_detail);
 
