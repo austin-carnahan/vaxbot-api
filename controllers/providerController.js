@@ -125,12 +125,12 @@ exports.provider_search = async function(req, res) {
             filter[param] = req.query[param];
         }
         
-        const provider = await Provider.find(filter);
+        const providers = await Provider.find(filter);
         
-        if(!provider) {
-            res.status(404).json({ "message": `Unable to find provider with parameters: ${query_obj}`})
+        if(!providers) {
+            res.status(404).json({ "message": `Unable to find providers with parameters: ${query_obj}`})
         } else {
-            res.json(provider);
+            res.json(providers);
         }
         
     } catch (err) {
@@ -166,17 +166,21 @@ exports.provider_batch = async function(req, res) {
                 const existing_record_availability = provider.vaccine_available;
                 const updated_provider = await provider.set(item);
                 await updated_provider.save();
-                await updated_provider.populate('channel').execPopulate();
                 response_data.push(updated_provider);
-                publish_or_nah(req, updated_provider, existing_record_availability);
-                
+		if(updated_provider.channel) {
+			await updated_provider.populate('channel').execPopulate();
+			publish_or_nah(req, updated_provider, existing_record_availability);
+		}
+		
             } else { //we create a new documenet
                 console.log("No record found. Creating new Provider...");
                 provider = new Provider(item);
                 const new_provider = await provider.save();
-                await new_provider.populate('channel').execPopulate();
                 response_data.push(new_provider);
-                publish_or_nah(req, new_provider);
+		if(new_provider.channel) {
+			await new_provider.populate('channel').execPopulate();
+			publish_or_nah(req, new_provider);
+		}
             }
         }
         

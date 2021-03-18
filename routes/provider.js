@@ -7,7 +7,7 @@ var provider_controller = require('../controllers/providerController');
 router.get('/', provider_controller.provider_list);
 
 // GET request for searching providers.
-router.get('/search/', provider_controller.provider_search);
+router.get('/search', provider_controller.provider_search);
 
 // GET request for getting provider details.
 router.get('/:id', provider_controller.provider_detail);

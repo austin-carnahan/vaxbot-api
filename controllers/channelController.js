@@ -1,4 +1,5 @@
 var Channel = require('../models/channel');
+var Provider = require('../models/provider');
 
 // return list of all Channels GET
 exports.channel_list = async function(req, res) {
@@ -38,6 +39,8 @@ exports.channel_create = async function(req, res) {			//need to work on default 
 				name : req.body.name, 
 				description : req.body.description,
 				state: req.body.state,
+				location: req.body.location,
+				radius: req.body.radius,
 			});
 			
 			const new_channel = await channel.save();	
@@ -79,7 +82,41 @@ exports.channel_update = async function(req, res) {
 	}
 };
 
-// Subscribe to specific Channel on GET.
-exports.channel_subscribe = async function(req, res) {
-    res.send('NOT IMPLEMENTED: Channel subscribe POST' + + req.params.id);
+// Populate channels by adding them to providers
+exports.channel_populate = async function(req, res) {
+	try {
+		console.log("populating channels...");
+		let channels = await Channel.find();
+		
+		for(channel of channels) {
+			let distance_meters = channel.radius * 1609.34;
+			Provider.find({
+				location: {
+					$near: {
+						$maxDistance: distance_meters,
+						$geometry: {
+							type: 'Point',
+							coordinates: channel.location.coordinates,
+						},
+					},
+				},
+			}).find((error, results) => {
+					if (error) throw(error);
+					//~ console.log(JSON.stringify(results, 0, 2));
+					channel.set({providers: results.length || 0});
+					channel.save();
+					console.log(`found ${results.length} providers`);
+					for(provider of results) {
+						provider.set({channel: channel._id});
+						provider.save();
+					}
+					
+					res.status(200).send("Successfully populated channels");
+				});
+		}
+		
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(`Oops! Something went wrong: \n ${err}`);
+	}
 };

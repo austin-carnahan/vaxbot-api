@@ -6,6 +6,9 @@ var channel_controller = require('../controllers/channelController');
 // GET request for listing all channels.
 router.get('/', channel_controller.channel_list);
 
+// GET request for running channel mappings
+router.get('/populate', channel_controller.channel_populate)
+
 // GET request for getting a channels details.
 router.get('/:id', channel_controller.channel_detail);
 
@@ -20,8 +23,5 @@ router.delete('/:id', channel_controller.channel_delete);
 
 // PATCH request for updating a channel.
 router.patch('/:id', channel_controller.channel_update);
-
-// POST request for subscribing to channel.
-router.post('/:id/subscribe', channel_controller.channel_subscribe);
 
 module.exports = router;
