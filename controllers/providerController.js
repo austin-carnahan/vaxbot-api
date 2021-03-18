@@ -128,8 +128,8 @@ exports.provider_search = async function(req, res) {
                     continue;
                 }
                 if(param == "vaccine_available") {
-                    filter[param] = Boolean(req.query[param]);
-                    continue;
+                    filter[param] = Boolean(req.query[param]);      // $geoNear query param wont coerce types in search so we have to do it manually?
+                    continue;                                       // weird bc it totally works in the reg filter query
                 }
                 filter[param] = req.query[param];
             }
