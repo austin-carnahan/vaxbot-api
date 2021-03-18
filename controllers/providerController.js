@@ -120,29 +120,7 @@ exports.provider_update = async function(req, res) {
 // Search for providers.
 exports.provider_search = async function(req, res) {
     try {
-        // Geographic query
-        //~ if(req.query.params.includes(lon) && req.query.params.includes(lat) {
-            //~ let distance_meters = null;
-            //~ if(request.query.params.includes(radius)) {
-                //~ distance_meters = Number(request.query.params.radius) * 1609.34;
-            //~ }
-            
-            //~ Provider.find({
-				//~ location: {
-					//~ $near: {
-						//~ $maxDistance: distance_meters,
-						//~ $geometry: {
-							//~ type: 'Point',
-							//~ coordinates: [Number(req.query.params.lon), Number(req.query.params.lat)],
-						//~ },
-					//~ },
-				//~ },
-			//~ }).find((error, results) => {
-                //~ if (error) throw(error);
-                //~ res.json(results);
-            //~ });
-        //~ }
-        console.log(req.query);
+        //~ console.log(req.query);
         // Filter query    
         let filter = {};
         if(req.query) {
