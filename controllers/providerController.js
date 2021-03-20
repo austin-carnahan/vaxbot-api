@@ -234,7 +234,7 @@ exports.provider_batch = async function(req, res) {
 		}
             }
         }
-        
+        console.log("SUCCESSFUL UPDATE");
         res.status(200).json(response_data);
         
     } catch(err) {
